@@ -1,5 +1,5 @@
 id,titulo,descricao,status,tags,data_limite,responsavel
-2,"123456","","urgente","sasa","asassa","freitas"
+2,"123456","","urgente","sasa","asassa",""
 3,"asdasdas","","urgente","dasda","dasdas","freitas"
 4,"Teste","","com_data","https://gtd-kamban.vercel.app","Yyy","freitas"
 5,"Test","","nao_iniciado","Test","Haha","freitas"
