@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanban de Atividades - Freitas</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial;
+      background: #f9f9f9;
+      color: #222;
+    }
+    h1 {
+      text-align: center;
+      padding: 1rem;
+      font-weight: 500;
+    }
+    form {
+      max-width: 600px;
+      margin: 1rem auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    input, select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    .kanban {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    .column {
+      flex: 1;
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      min-width: 250px;
+    }
+    .column h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: .5rem;
+    }
+    .card {
+      background: #f1f1f1;
+      border-radius: 8px;
+      padding: .5rem;
+      margin-bottom: .5rem;
+    }
+    .card .title {
+      font-weight: 600;
+      margin-bottom: .25rem;
+    }
+    .card .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .25rem;
+      margin-top: .25rem;
+    }
+    .tag {
+      background: #d0d0d0;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: .75rem;
+    }
+    .card .date {
+      font-size: .75rem;
+      color: #666;
+      margin-top: .25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kanban de Atividades</h1>
+
+  <form id="form">
+    <input name="titulo" placeholder="Título da tarefa" required />
+    <select name="status">
+      <option value="urgente">Urgente</option>
+      <option value="nao_iniciado">Não Iniciado</option>
+      <option value="em_andamento">Em Andamento</option>
+      <option value="com_data">Com Data</option>
+    </select>
+    <input name="tags" placeholder="Tags (ex: faculdade;cws)" />
+    <input name="data_limite" placeholder="Data limite (YYYY-MM-DD)" />
+    <input name="responsavel" placeholder="Responsável" value="freitas" />
+    <button type="submit">Adicionar Tarefa</button>
+  </form>
+
+  <div class="kanban" id="kanban"></div>
+
+  <script>
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const body = {
+        titulo: form.titulo.value,
+        status: form.status.value,
+        tags: form.tags.value,
+        data_limite: form.data_limite.value,
+        responsavel: form.responsavel.value
+      };
+      const res = await fetch("/api/save-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      alert(json.message || json.error);
+      location.reload();
+    });
+
+    async function carregarTarefas() {
+      const response = await fetch("public/tasks.csv");
+      const text = await response.text();
+      const linhas = text.trim().split("\n").slice(1);
+      const tarefas = linhas.map(linha => {
+        const [id, titulo, descricao, status, tags, data_limite, responsavel] = linha.split(",");
+        return { id, titulo, descricao, status, tags, data_limite, responsavel };
+      });
+
+      const colunas = {
+        urgente: "Urgente",
+        nao_iniciado: "Não Iniciado",
+        em_andamento: "Em Andamento",
+        com_data: "Com Data"
+      };
+
+      const kanbanDiv = document.getElementById("kanban");
+      kanbanDiv.innerHTML = "";
+
+      Object.entries(colunas).forEach(([key, label]) => {
+        const col = document.createElement("div");
+        col.className = "column";
+        col.innerHTML = `<h2>${label}</h2>`;
+        tarefas.filter(t => t.status === key).forEach(t => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="title">${t.titulo}</div>
+            <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
+            ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
+          `;
+          col.appendChild(card);
+        });
+        kanbanDiv.appendChild(col);
+      });
+    }
+
+    carregarTarefas();
+  </script>
+</body>
+</html>
