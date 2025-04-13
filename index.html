@@ -74,6 +74,17 @@
       color: #666;
       margin-top: 0.25rem;
     }
+    /* Estilo para o aviso temporário */
+    #aviso {
+      text-align: center;
+      padding: 1rem;
+      background-color: #e0f7fa;
+      color: #00796b;
+      font-weight: 600;
+      margin: 1rem auto;
+      max-width: 600px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -94,29 +105,32 @@
     <button type="submit">Adicionar Tarefa</button>
   </form>
 
+  <!-- Div para exibir aviso temporário -->
+  <div id="aviso" style="display: none;"></div>
+
   <div class="kanban" id="kanban"></div>
 
   <script>
-    // Salva a nova tarefa no localStorage para exibição imediata
+    // Função para salvar a tarefa no localStorage para exibição imediata
     function salvarTarefaLocal(tarefa) {
       const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
       tarefasCache.push(tarefa);
       localStorage.setItem("tarefasCache", JSON.stringify(tarefasCache));
     }
 
-    // Função para carregar as tarefas do CSV e, se tiver conteúdo, limpar o cache local
+    // Função para carregar as tarefas do CSV e, se houver conteúdo, limpar o cache local
     async function carregarTarefas() {
       try {
-        // Obtém o CSV usando o caminho "public/tasks.csv" conforme sua configuração
+        // Obtém o CSV usando o caminho "public/tasks.csv"
         const response = await fetch("public/tasks.csv");
         if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
         const text = await response.text();
         const linhas = text.trim().split("\n").slice(1); // ignora o cabeçalho
 
-        // Converte cada linha do CSV em um objeto tarefa
         const tarefasCSV = linhas.map((linha) => {
           let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
           campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
+          // Garante que sempre existam 7 campos, preenchendo com vazio se necessário
           while (campos.length < 7) {
             campos.push("");
           }
@@ -124,16 +138,14 @@
           return { id, titulo, descricao, status, tags, data_limite, responsavel };
         });
 
-        // Se o CSV retornou tarefas, priorizamos esses dados, limpando o cache local
+        // Se o CSV retornar dados, limpamos o cache local para evitar duplicações
         if (tarefasCSV.length > 0) {
           localStorage.removeItem("tarefasCache");
         }
 
-        // Se o CSV estiver vazio, usa as tarefas do cache (fallback)
         const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
         const todasTarefas = tarefasCSV.length > 0 ? tarefasCSV : tarefasCache;
 
-        // Definição das colunas do Kanban
         const colunas = {
           urgente: "Urgente",
           nao_iniciado: "Não Iniciado",
@@ -144,7 +156,6 @@
         const kanbanDiv = document.getElementById("kanban");
         kanbanDiv.innerHTML = "";
 
-        // Renderiza as tarefas em suas respectivas colunas
         Object.entries(colunas).forEach(([key, label]) => {
           const col = document.createElement("div");
           col.className = "column";
@@ -185,10 +196,26 @@
         });
         const json = await res.json();
         alert(json.message || json.error);
-        // Salva a tarefa localmente para exibição imediata
+
+        // Limpa o formulário para evitar duplicação
+        form.reset();
+
+        // Exibe o aviso temporário
+        const avisoDiv = document.getElementById("aviso");
+        avisoDiv.style.display = "block";
+        avisoDiv.innerText = "Sua tarefa foi enviada, aguarde enquanto a página é atualizada...";
+        
+        // Salva a tarefa no cache local para exibição imediata
         salvarTarefaLocal(novaTarefa);
-        // Atualiza a interface, usando local cache temporariamente
+        
+        // Atualiza a interface, exibindo o cache temporário
         carregarTarefas();
+        
+        // Após 10 segundos, limpa o cache local e recarrega a página para refletir o CSV atualizado
+        setTimeout(() => {
+          localStorage.removeItem("tarefasCache");
+          location.reload();
+        }, 10000);
       } catch (err) {
         console.error("Erro ao adicionar tarefa:", err);
       }
