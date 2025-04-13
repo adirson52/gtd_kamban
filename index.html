@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kanban de Atividades - Freitas (Edição)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanban de Atividades - Freitas (Edição e Conclusão)</title>
   <style>
     body {
       margin: 0;
@@ -77,8 +77,20 @@
     }
     .edit-btn {
       position: absolute;
-      top: 5px; right: 5px;
-      background: #ffc107;
+      top: 5px;
+      right: 50px;
+      background: #ffeb3b; /* amarelo bem fraco */
+      border: none;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .complete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #c8e6c9; /* verde bem fraco */
       border: none;
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
@@ -97,34 +109,36 @@
       border-radius: 8px;
       display: none;
     }
-    /* Modal de edição */
-    #editModal {
-      display: none; 
-      position: fixed; 
-      z-index: 1000; 
-      top: 50%; left: 50%; 
+    /* Modal de Conclusão */
+    #completeOverlay {
+      display: none;
+      position: fixed;
+      z-index: 900;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+    }
+    #completeModal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: white;
-      border-radius: 8px;
       padding: 1rem;
+      border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
       max-width: 400px;
       width: 100%;
     }
-    #overlay {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-    }
   </style>
 </head>
 <body>
-  <h1>Kanban de Atividades (Com Edição)</h1>
+  <h1>Kanban de Atividades</h1>
 
-  <!-- Formulário para adicionar nova tarefa (igual antes) -->
+  <!-- Formulário para adicionar nova tarefa -->
   <form id="form">
     <input name="titulo" placeholder="Título da tarefa" required />
     <select name="status">
@@ -144,42 +158,50 @@
 
   <div class="kanban" id="kanban"></div>
 
-  <!-- Modal de edição -->
-  <div id="overlay"></div>
-  <div id="editModal">
-    <h3>Editar Tarefa</h3>
-    <form id="editForm">
-      <input type="hidden" name="id" />
-      <input name="titulo" placeholder="Título da tarefa" required />
-      <input name="descricao" placeholder="Descrição (opcional)" />
-      <select name="status">
-        <option value="urgente">Urgente</option>
-        <option value="nao_iniciado">Não Iniciado</option>
-        <option value="em_andamento">Em Andamento</option>
-        <option value="com_data">Com Data</option>
-      </select>
-      <input name="tags" placeholder="Tags (ex: faculdade;cws)" />
-      <input name="data_limite" placeholder="Data limite (YYYY-MM-DD)" />
-      <input name="responsavel" placeholder="Responsável" />
-      <button type="submit">Salvar Alterações</button>
-      <button type="button" onclick="fecharModal()">Cancelar</button>
-    </form>
+  <!-- Modal de Conclusão -->
+  <div id="completeOverlay"></div>
+  <div id="completeModal">
+    <h3>Concluir Tarefa</h3>
+    <p>Digite seu nome para confirmar a conclusão:</p>
+    <input type="text" id="concludedBy" placeholder="Seu nome" />
+    <br /><br />
+    <button id="confirmComplete">Concluir</button>
+    <button type="button" onclick="fecharCompleteModal()">Cancelar</button>
   </div>
 
   <script>
-    // ====== CÓDIGO DE CRIAÇÃO DE TAREFA (igual antes) =======
+    let tarefaParaConcluir = null;
+
+    // Função para salvar a tarefa no localStorage (cache temporário)
     function salvarTarefaLocal(tarefa) {
       const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
       tarefasCache.push(tarefa);
       localStorage.setItem("tarefasCache", JSON.stringify(tarefasCache));
     }
 
+    // Função para salvar edições ou conclusões localmente (cache)
+    function salvarEdicaoLocal(tarefaEditada) {
+      const cacheEditar = JSON.parse(localStorage.getItem("tarefasCacheEditar") || "[]");
+      const filtrado = cacheEditar.filter(t => t.id !== tarefaEditada.id);
+      filtrado.push(tarefaEditada);
+      localStorage.setItem("tarefasCacheEditar", JSON.stringify(filtrado));
+    }
+
+    // Função para exibir um aviso temporário
+    function exibirAviso(texto) {
+      const avisoDiv = document.getElementById("aviso");
+      avisoDiv.style.display = "block";
+      avisoDiv.innerText = texto;
+    }
+
+    // Função para carregar as tarefas do CSV (mesclando com cache local se necessário)
     async function carregarTarefas() {
       try {
+        // Obtém o CSV usando o caminho "public/tasks.csv"
         const response = await fetch("public/tasks.csv");
         if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
         const text = await response.text();
-        const linhas = text.trim().split("\n").slice(1); // ignora cabeçalho
+        const linhas = text.trim().split("\n").slice(1); // ignora o cabeçalho
 
         const tarefasCSV = linhas.map(linha => {
           let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
@@ -189,7 +211,7 @@
           return { id, titulo, descricao, status, tags, data_limite, responsavel };
         });
 
-        // Se há dados no CSV, limpa cache
+        // Se o CSV retornar dados, limpa o cache local de novas tarefas para evitar duplicação
         if (tarefasCSV.length > 0) {
           localStorage.removeItem("tarefasCache");
         }
@@ -197,7 +219,6 @@
         const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
         const todasTarefas = tarefasCSV.length > 0 ? tarefasCSV : tarefasCache;
 
-        // Renderiza no kanban
         const colunas = {
           urgente: "Urgente",
           nao_iniciado: "Não Iniciado",
@@ -212,24 +233,26 @@
           const col = document.createElement("div");
           col.className = "column";
           col.innerHTML = `<h2>${label}</h2>`;
-          todasTarefas
-            .filter(t => t.status === key)
-            .forEach(t => {
-              const card = document.createElement("div");
-              card.className = "card";
-              // Botão Editar
-              card.innerHTML = `
-                <div class="title">${t.titulo}</div>
-                <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
-                ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
-                <button class="edit-btn">Editar</button>
-              `;
-              // Ao clicar em "Editar", abrimos o modal
-              card.querySelector(".edit-btn").addEventListener("click", () => {
-                abrirModalEdicao(t);
-              });
-              col.appendChild(card);
+          todasTarefas.filter(t => t.status === key).forEach(t => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <div class="title">${t.titulo}</div>
+              <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
+              ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
+              <button class="edit-btn">Editar</button>
+              <button class="complete-btn">Concluir</button>
+            `;
+            // Evento para abrir modal de edição (já existente, se implementado)
+            card.querySelector(".edit-btn").addEventListener("click", () => {
+              abrirModalEdicao(t);
             });
+            // Evento para concluir a tarefa
+            card.querySelector(".complete-btn").addEventListener("click", () => {
+              abrirCompleteModal(t);
+            });
+            col.appendChild(card);
+          });
           kanbanDiv.appendChild(col);
         });
       } catch (err) {
@@ -237,14 +260,14 @@
       }
     }
 
+    // Evento de submissão do formulário para adicionar nova tarefa
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
       const novaTarefa = {
-        // Para criar uma nova, geramos ID provisório (ex: Date.now()) ou deixamos a API atribuir.
         id: Date.now().toString(),
         titulo: form.titulo.value,
-        descricao: "", // não tem no formulário de criação
+        descricao: "", // Sem descrição no form de criação
         status: form.status.value,
         tags: form.tags.value,
         data_limite: form.data_limite.value,
@@ -258,20 +281,10 @@
         });
         const json = await res.json();
         alert(json.message || json.error);
-
-        // limpa formulário
         form.reset();
-
-        // Exibe aviso
         exibirAviso("Sua tarefa foi enviada, aguarde atualização...");
-
-        // Salva local
         salvarTarefaLocal(novaTarefa);
-
-        // Recarrega interface
         carregarTarefas();
-
-        // Após 10s, limpa cache e recarrega
         setTimeout(() => {
           localStorage.removeItem("tarefasCache");
           location.reload();
@@ -281,89 +294,56 @@
       }
     });
 
-    // ====== CÓDIGO DE EDIÇÃO DE TAREFA =======
-    // Abre modal, preenche form com dados da tarefa
-    function abrirModalEdicao(tarefa) {
-      document.getElementById("overlay").style.display = "block";
-      const editModal = document.getElementById("editModal");
-      editModal.style.display = "block";
-      // preenche o form
-      const editForm = document.getElementById("editForm");
-      editForm.id.value = tarefa.id;
-      editForm.titulo.value = tarefa.titulo;
-      editForm.descricao.value = tarefa.descricao;
-      editForm.status.value = tarefa.status;
-      editForm.tags.value = tarefa.tags;
-      editForm.data_limite.value = tarefa.data_limite;
-      editForm.responsavel.value = tarefa.responsavel;
+    // Funções para abrir e fechar o modal de Conclusão
+    function abrirCompleteModal(tarefa) {
+      tarefaParaConcluir = tarefa;
+      document.getElementById("completeOverlay").style.display = "block";
+      document.getElementById("completeModal").style.display = "block";
+      document.getElementById("concludedBy").value = "";
     }
 
-    // Fecha modal
-    function fecharModal() {
-      document.getElementById("overlay").style.display = "none";
-      document.getElementById("editModal").style.display = "none";
+    function fecharCompleteModal() {
+      tarefaParaConcluir = null;
+      document.getElementById("completeOverlay").style.display = "none";
+      document.getElementById("completeModal").style.display = "none";
     }
 
-    // Submissão do form de edição
-    document.getElementById("editForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const editForm = e.target;
-      const tarefaEditada = {
-        id: editForm.id.value,
-        titulo: editForm.titulo.value,
-        descricao: editForm.descricao.value,
-        status: editForm.status.value,
-        tags: editForm.tags.value,
-        data_limite: editForm.data_limite.value,
-        responsavel: editForm.responsavel.value
-      };
+    let tarefaParaConcluir = null;
+
+    // Evento do botão "Concluir" no modal
+    document.getElementById("confirmComplete").addEventListener("click", async () => {
+      const concludedBy = document.getElementById("concludedBy").value.trim();
+      if (!concludedBy) {
+        alert("Informe quem concluiu a tarefa.");
+        return;
+      }
       try {
-        const res = await fetch("/api/edit-task", {
+        const res = await fetch("/api/complete-task", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(tarefaEditada)
+          body: JSON.stringify({ id: tarefaParaConcluir.id, concluded_by: concludedBy })
         });
         const json = await res.json();
         alert(json.message || json.error);
-
-        fecharModal();
-        // Exibe aviso
-        exibirAviso("Sua edição foi enviada, aguarde atualização...");
-
-        // Salva localmente no cache para exibir de imediato
-        salvarEdicaoLocal(tarefaEditada);
-
-        // Recarrega a interface
+        fecharCompleteModal();
+        exibirAviso("Sua tarefa foi concluída, aguarde atualização...");
+        salvarEdicaoLocal(tarefaParaConcluir);
         carregarTarefas();
-
-        // Após 10s, limpa cache e recarrega
         setTimeout(() => {
           localStorage.removeItem("tarefasCacheEditar");
           location.reload();
         }, 10000);
       } catch (err) {
-        console.error("Erro ao editar tarefa:", err);
+        console.error("Erro ao concluir tarefa:", err);
       }
     });
 
-    // Salva edições localmente (pode ser outro localStorage)
-    function salvarEdicaoLocal(tarefaEditada) {
-      // ex: "tarefasCacheEditar"
-      const cacheEditar = JSON.parse(localStorage.getItem("tarefasCacheEditar") || "[]");
-      // Remove caso já exista e substitui
-      const filtrado = cacheEditar.filter(t => t.id !== tarefaEditada.id);
-      filtrado.push(tarefaEditada);
-      localStorage.setItem("tarefasCacheEditar", JSON.stringify(filtrado));
+    // Função placeholder para abrir modal de edição (não implementada neste exemplo)
+    function abrirModalEdicao(tarefa) {
+      alert("Função de edição não implementada nesta versão.");
     }
 
-    // Exibe aviso na div #aviso
-    function exibirAviso(texto) {
-      const avisoDiv = document.getElementById("aviso");
-      avisoDiv.style.display = "block";
-      avisoDiv.innerText = texto;
-    }
-
-    // Carrega as tarefas ao abrir a página
+    // Carrega as tarefas ao carregar a página
     carregarTarefas();
   </script>
 </body>
