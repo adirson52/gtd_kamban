@@ -211,19 +211,19 @@
         Object.entries(colunas).forEach(([key, label]) => {
           const col = document.createElement("div");
           col.className = "column";
-          col.innerHTML = <h2>${label}</h2>;
+          col.innerHTML = `<h2>${label}</h2>`;
           todasTarefas
             .filter(t => t.status === key)
             .forEach(t => {
               const card = document.createElement("div");
               card.className = "card";
               // Botão Editar
-              card.innerHTML = 
+              card.innerHTML = `
                 <div class="title">${t.titulo}</div>
-                <div class="tags">${t.tags.split(";").map(tag => <span class="tag">${tag}</span>).join("")}</div>
-                ${t.data_limite ? <div class="date">Prazo: ${t.data_limite}</div> : ""}
+                <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
+                ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
                 <button class="edit-btn">Editar</button>
-              ;
+              `;
               // Ao clicar em "Editar", abrimos o modal
               card.querySelector(".edit-btn").addEventListener("click", () => {
                 abrirModalEdicao(t);
