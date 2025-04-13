@@ -206,7 +206,7 @@
     <button type="button" onclick="fecharCompleteModal()">Cancelar</button>
   </div>
 
-  <!-- Modal para exibir tarefas concluídas -->
+  <!-- Modal de tarefas concluídas -->
   <div id="concludedOverlay"></div>
   <div id="concludedModal">
     <h3>Tarefas Concluídas Recentemente</h3>
@@ -290,7 +290,7 @@
         console.error("Erro ao carregar CSV:", err.message);
       }
     }
-    
+
     async function carregarConcluidas() {
       try {
         const response = await fetch("public/concluded.csv");
@@ -300,7 +300,7 @@
         const concluidas = linhas.map(linha => {
           let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
           campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
-          while (campos.length < 9) { campos.push(""); } // 9 colunas esperadas
+          while (campos.length < 9) { campos.push(""); }
           const [id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial] = campos;
           return { id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial };
         });
@@ -318,7 +318,7 @@
         console.error("Erro ao carregar tarefas concluídas:", err.message);
       }
     }
-    
+
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
@@ -351,7 +351,7 @@
         console.error("Erro ao adicionar tarefa:", err);
       }
     });
-    
+
     document.getElementById("editForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const editForm = e.target;
@@ -384,7 +384,7 @@
         console.error("Erro ao editar tarefa:", err);
       }
     });
-    
+
     function abrirModalEdicao(tarefa) {
       document.getElementById("overlay").style.display = "block";
       const editModal = document.getElementById("editModal");
@@ -398,27 +398,27 @@
       editForm.data_limite.value = tarefa.data_limite;
       editForm.responsavel.value = tarefa.responsavel;
     }
-    
+
     function fecharModal() {
       document.getElementById("overlay").style.display = "none";
       document.getElementById("editModal").style.display = "none";
     }
-    
+
     function abrirCompleteModal(tarefa) {
       tarefaParaConcluir = tarefa;
       document.getElementById("completeOverlay").style.display = "block";
       document.getElementById("completeModal").style.display = "block";
       document.getElementById("concludedBy").value = "";
     }
-    
+
     function fecharCompleteModal() {
       tarefaParaConcluir = null;
       document.getElementById("completeOverlay").style.display = "none";
       document.getElementById("completeModal").style.display = "none";
     }
-    
+
     let tarefaParaConcluir = null;
-    
+
     document.getElementById("confirmComplete").addEventListener("click", async () => {
       const concludedBy = document.getElementById("concludedBy").value.trim();
       if (!concludedBy) {
@@ -445,7 +445,7 @@
         console.error("Erro ao concluir tarefa:", err);
       }
     });
-    
+
     document.getElementById("btnConcluidos").addEventListener("click", async () => {
       document.getElementById("concludedOverlay").style.display = "block";
       document.getElementById("concludedModal").style.display = "block";
@@ -456,7 +456,7 @@
       document.getElementById("concludedOverlay").style.display = "none";
       document.getElementById("concludedModal").style.display = "none";
     }
-    
+
     async function carregarConcluidas() {
       try {
         const response = await fetch("public/concluded.csv");
@@ -471,19 +471,21 @@
           return { id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial };
         });
         const lista = document.getElementById("listaConcluidas");
-        lista.innerHTML = "";
-        concluidas.forEach(t => {
-          const item = document.createElement("div");
-          item.style.borderBottom = "1px solid #eee";
-          item.style.padding = "0.5rem 0";
-          item.innerHTML = `<strong>${t.titulo}</strong><br/>Concluída em: ${t.concluded_at} por ${t.concluded_by}`;
-          lista.appendChild(item);
-        });
+        if(lista) {
+          lista.innerHTML = "";
+          concluidas.forEach(t => {
+            const item = document.createElement("div");
+            item.style.borderBottom = "1px solid #eee";
+            item.style.padding = "0.5rem 0";
+            item.innerHTML = `<strong>${t.titulo}</strong><br/>Concluída em: ${t.concluded_at} por ${t.concluded_by}`;
+            lista.appendChild(item);
+          });
+        }
       } catch (err) {
         console.error("Erro ao carregar tarefas concluídas:", err.message);
       }
     }
-    
+
     carregarTarefas();
   </script>
 </body>
