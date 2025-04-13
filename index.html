@@ -79,7 +79,7 @@
 <body>
   <h1>Kanban de Atividades</h1>
 
-  <!-- Formulário para adicionar novas tarefas -->
+  <!-- Formulário para adicionar nova tarefa -->
   <form id="form">
     <input name="titulo" placeholder="Título da tarefa" required />
     <select name="status">
@@ -97,36 +97,43 @@
   <div class="kanban" id="kanban"></div>
 
   <script>
-    // Função que salva a tarefa temporariamente no localStorage
+    // Salva a nova tarefa no localStorage para exibição imediata
     function salvarTarefaLocal(tarefa) {
       const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
       tarefasCache.push(tarefa);
       localStorage.setItem("tarefasCache", JSON.stringify(tarefasCache));
     }
 
-    // Função para carregar as tarefas do CSV e mesclar com o cache local (se houver)
+    // Função para carregar as tarefas do CSV e, se tiver conteúdo, limpar o cache local
     async function carregarTarefas() {
       try {
-        // Buscando o CSV usando o caminho "public/tasks.csv" conforme sua configuração
+        // Obtém o CSV usando o caminho "public/tasks.csv" conforme sua configuração
         const response = await fetch("public/tasks.csv");
         if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
         const text = await response.text();
         const linhas = text.trim().split("\n").slice(1); // ignora o cabeçalho
-        
-        // Converte cada linha em um objeto tarefa
-        const tarefasCSV = linhas.map(linha => {
+
+        // Converte cada linha do CSV em um objeto tarefa
+        const tarefasCSV = linhas.map((linha) => {
           let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
           campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
-          while (campos.length < 7) campos.push("");
+          while (campos.length < 7) {
+            campos.push("");
+          }
           const [id, titulo, descricao, status, tags, data_limite, responsavel] = campos;
           return { id, titulo, descricao, status, tags, data_limite, responsavel };
         });
 
-        // Recupera as tarefas armazenadas localmente (caso haja alguma tarefa nova a ser exibida)
-        const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
-        // Mescla as tarefas do CSV com as tarefas temporárias
-        const todasTarefas = tarefasCSV.concat(tarefasCache);
+        // Se o CSV retornou tarefas, priorizamos esses dados, limpando o cache local
+        if (tarefasCSV.length > 0) {
+          localStorage.removeItem("tarefasCache");
+        }
 
+        // Se o CSV estiver vazio, usa as tarefas do cache (fallback)
+        const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
+        const todasTarefas = tarefasCSV.length > 0 ? tarefasCSV : tarefasCache;
+
+        // Definição das colunas do Kanban
         const colunas = {
           urgente: "Urgente",
           nao_iniciado: "Não Iniciado",
@@ -154,20 +161,12 @@
           });
           kanbanDiv.appendChild(col);
         });
-
-        // Após 10 segundos, limpa o cache local e recarrega a página para refletir o CSV atualizado
-        if(tarefasCache.length > 0) {
-          setTimeout(() => {
-            localStorage.removeItem("tarefasCache");
-            location.reload();
-          }, 10000);
-        }
       } catch (err) {
         console.error("Erro ao carregar CSV:", err.message);
       }
     }
 
-    // Evento de submissão do formulário
+    // Evento de submissão do formulário para adicionar uma nova tarefa
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
@@ -188,14 +187,14 @@
         alert(json.message || json.error);
         // Salva a tarefa localmente para exibição imediata
         salvarTarefaLocal(novaTarefa);
-        // Atualiza a interface
+        // Atualiza a interface, usando local cache temporariamente
         carregarTarefas();
       } catch (err) {
         console.error("Erro ao adicionar tarefa:", err);
       }
     });
 
-    // Carrega as tarefas assim que o documento estiver pronto
+    // Carrega as tarefas assim que a página for aberta
     carregarTarefas();
   </script>
 </body>
