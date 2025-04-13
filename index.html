@@ -116,62 +116,50 @@
       location.reload();
     });
 
-<script>
-  async function carregarTarefas() {
-    try {
-      const response = await fetch("/tasks.csv"); // corrigido: sem "public/"
-      if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
-      const text = await response.text();
+    async function carregarTarefas() {
+      try {
+        const response = await fetch("/tasks.csv");
+        if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
+        const text = await response.text();
 
-      const linhas = text.trim().split("\n").slice(1); // pula cabeçalho
-      const tarefas = linhas.map((linha) => {
-        let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
-
-        // Limpa aspas e preenche campos faltantes com vazio
-        campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
-        while (campos.length < 7) campos.push("");
-
-        const [id, titulo, descricao, status, tags, data_limite, responsavel] = campos;
-        return { id, titulo, descricao, status, tags, data_limite, responsavel };
-      });
-
-      const colunas = {
-        urgente: "Urgente",
-        nao_iniciado: "Não Iniciado",
-        em_andamento: "Em Andamento",
-        com_data: "Com Data"
-      };
-
-      const kanbanDiv = document.getElementById("kanban");
-      kanbanDiv.innerHTML =
-
-
-      const colunas = {
-        urgente: "Urgente",
-        nao_iniciado: "Não Iniciado",
-        em_andamento: "Em Andamento",
-        com_data: "Com Data"
-      };
-
-      const kanbanDiv = document.getElementById("kanban");
-      kanbanDiv.innerHTML = "";
-
-      Object.entries(colunas).forEach(([key, label]) => {
-        const col = document.createElement("div");
-        col.className = "column";
-        col.innerHTML = `<h2>${label}</h2>`;
-        tarefas.filter(t => t.status === key).forEach(t => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `
-            <div class="title">${t.titulo}</div>
-            <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
-            ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
-          `;
-          col.appendChild(card);
+        const linhas = text.trim().split("\n").slice(1);
+        const tarefas = linhas.map((linha) => {
+          let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
+          campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
+          while (campos.length < 7) campos.push("");
+          const [id, titulo, descricao, status, tags, data_limite, responsavel] = campos;
+          return { id, titulo, descricao, status, tags, data_limite, responsavel };
         });
-        kanbanDiv.appendChild(col);
-      });
+
+        const colunas = {
+          urgente: "Urgente",
+          nao_iniciado: "Não Iniciado",
+          em_andamento: "Em Andamento",
+          com_data: "Com Data"
+        };
+
+        const kanbanDiv = document.getElementById("kanban");
+        kanbanDiv.innerHTML = "";
+
+        Object.entries(colunas).forEach(([key, label]) => {
+          const col = document.createElement("div");
+          col.className = "column";
+          col.innerHTML = `<h2>${label}</h2>`;
+          tarefas.filter(t => t.status === key).forEach(t => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <div class="title">${t.titulo}</div>
+              <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
+              ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
+            `;
+            col.appendChild(card);
+          });
+          kanbanDiv.appendChild(col);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar CSV:", err.message);
+      }
     }
 
     carregarTarefas();
