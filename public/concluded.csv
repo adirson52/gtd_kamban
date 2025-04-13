@@ -1,1 +1,6 @@
 id,titulo,descricao,status_inicial,tags,data_limite,concluded_at,concluded_by,responsavel_inicial
+"1","Tarefa A","Descrição A","pendente","tagA","2025-05-01","","","Silva"
+"2","Tarefa B","Descrição B","em progresso","tagB","2025-05-02","","","Souza"
+"3","Tarefa C","Descrição C","concluído","tagC","2025-05-03","2025-05-03","Lima","Paula"
+"4","Tarefa D","Descrição D","cancelado","tagD","2025-05-04","","","Ribeiro"
+"5","Tarefa E","Descrição E","aguardando","tagE","2025-05-05","","","Martins"
