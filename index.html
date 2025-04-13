@@ -124,7 +124,7 @@
     // Função para carregar o CSV e renderizar as tarefas no Kanban
     async function carregarTarefas() {
       try {
-        const response = await fetch("/tasks.csv");
+        const response = await fetch("public/tasks.csv");
         if (!response.ok) {
           throw new Error("Não foi possível carregar o arquivo CSV.");
         }
