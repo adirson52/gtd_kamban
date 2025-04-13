@@ -116,15 +116,35 @@
       location.reload();
     });
 
-    async function carregarTarefas() {
-      const response = await fetch("public/tasks.csv");
+<script>
+  async function carregarTarefas() {
+    try {
+      const response = await fetch("/tasks.csv"); // corrigido: sem "public/"
+      if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
       const text = await response.text();
-      const linhas = text.trim().split("\n").slice(1);
-      const tarefas = linhas.map(linha => {
-        const campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g).map(c => c.replace(/^"|"$/g, ''));
+
+      const linhas = text.trim().split("\n").slice(1); // pula cabeçalho
+      const tarefas = linhas.map((linha) => {
+        let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
+
+        // Limpa aspas e preenche campos faltantes com vazio
+        campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
+        while (campos.length < 7) campos.push("");
+
         const [id, titulo, descricao, status, tags, data_limite, responsavel] = campos;
         return { id, titulo, descricao, status, tags, data_limite, responsavel };
       });
+
+      const colunas = {
+        urgente: "Urgente",
+        nao_iniciado: "Não Iniciado",
+        em_andamento: "Em Andamento",
+        com_data: "Com Data"
+      };
+
+      const kanbanDiv = document.getElementById("kanban");
+      kanbanDiv.innerHTML =
+
 
       const colunas = {
         urgente: "Urgente",
