@@ -8,14 +8,13 @@ module.exports = async (req, res) => {
   const token = "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";
   const owner = "adirson52";
   const repo = "gtd_kamban";
-  const path = "public/tasks.csv";
+  const path = "público/tarefas.csv";
 
   const octokit = new Octokit({ auth: token });
 
   const { titulo, status, tags, data_limite, responsavel } = req.body;
 
   try {
-    // Obter conteúdo atual do CSV
     const { data: fileData } = await octokit.rest.repos.getContent({
       owner,
       repo,
@@ -30,7 +29,6 @@ module.exports = async (req, res) => {
     const novaLinha = `\n${nextId},"${titulo}","","${status}","${tags}","${data_limite}","${responsavel}"`;
     const novoConteudo = content + novaLinha;
 
-    // Commit com novo conteúdo
     await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
