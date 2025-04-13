@@ -5,10 +5,10 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const token = process.env.GH_TOKEN;
+  const token = process.env.GITHUB_TOKEN;
   const owner = "adirson52";
   const repo = "gtd_kamban";
-  const path = "public/tasks.csv";
+  const path = "public/tasks.csv"; // ✅ precisa estar certo
 
   const octokit = new Octokit({ auth: token });
 
