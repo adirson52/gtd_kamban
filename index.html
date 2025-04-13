@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kanban de Atividades - Freitas (Edição e Conclusão)</title>
+  <title>Kanban de Atividades - Freitas (Edição, Conclusão e Histórico)</title>
   <style>
     body {
       margin: 0;
@@ -79,7 +79,7 @@
       position: absolute;
       top: 5px;
       right: 50px;
-      background: #ffeb3b; /* amarelo bem fraco */
+      background: #ffeb3b; /* amarelo suave */
       border: none;
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
@@ -90,14 +90,13 @@
       position: absolute;
       top: 5px;
       right: 5px;
-      background: #c8e6c9; /* verde bem fraco */
+      background: #c8e6c9; /* verde suave */
       border: none;
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
       cursor: pointer;
       font-size: 0.8rem;
     }
-    /* Aviso temporário */
     #aviso {
       text-align: center;
       padding: 1rem;
@@ -109,33 +108,19 @@
       border-radius: 8px;
       display: none;
     }
+    /* Botão para visualizar tarefas concluídas */
+    #btnConcluidos {
+      display: block;
+      margin: 1rem auto;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #c8e6c9;
+      border: none;
+      border-radius: 4px;
+    }
     /* Modal de edição */
-    #overlay {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-    }
-    #editModal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      max-width: 400px;
-      width: 100%;
-    }
-    /* Modal de conclusão */
-    #completeOverlay {
+    #overlay, #editOverlay, #completeOverlay, #concludedOverlay {
       display: none;
       position: fixed;
       z-index: 900;
@@ -145,7 +130,7 @@
       height: 100%;
       background: rgba(0,0,0,0.5);
     }
-    #completeModal {
+    #editModal, #completeModal, #concludedModal {
       display: none;
       position: fixed;
       z-index: 1000;
@@ -162,7 +147,7 @@
   </style>
 </head>
 <body>
-  <h1>Kanban de Atividades (Edição e Conclusão)</h1>
+  <h1>Kanban de Atividades (Edição, Conclusão e Histórico)</h1>
 
   <!-- Formulário para adicionar nova tarefa -->
   <form id="form">
@@ -178,6 +163,9 @@
     <input name="responsavel" placeholder="Responsável" value="freitas" />
     <button type="submit">Adicionar Tarefa</button>
   </form>
+
+  <!-- Botão para visualizar tarefas concluídas -->
+  <button id="btnConcluidos">Ver Tarefas Concluídas</button>
 
   <!-- Aviso temporário -->
   <div id="aviso"></div>
@@ -216,6 +204,14 @@
     <br/><br/>
     <button id="confirmComplete">Concluir</button>
     <button type="button" onclick="fecharCompleteModal()">Cancelar</button>
+  </div>
+
+  <!-- Modal para exibir tarefas concluídas -->
+  <div id="concludedOverlay"></div>
+  <div id="concludedModal">
+    <h3>Tarefas Concluídas Recentemente</h3>
+    <div id="listaConcluidas"></div>
+    <button type="button" onclick="fecharConcludedModal()">Fechar</button>
   </div>
 
   <script>
@@ -294,7 +290,35 @@
         console.error("Erro ao carregar CSV:", err.message);
       }
     }
-
+    
+    async function carregarConcluidas() {
+      try {
+        const response = await fetch("public/concluded.csv");
+        if (!response.ok) throw new Error("Não foi possível carregar o arquivo de tarefas concluídas.");
+        const text = await response.text();
+        const linhas = text.trim().split("\n").slice(1);
+        const concluidas = linhas.map(linha => {
+          let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
+          campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
+          while (campos.length < 9) { campos.push(""); } // 9 colunas esperadas
+          const [id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial] = campos;
+          return { id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial };
+        });
+        const lista = document.getElementById("listaConcluidas");
+        lista.innerHTML = "";
+        concluidas.forEach(t => {
+          const item = document.createElement("div");
+          item.style.borderBottom = "1px solid #eee";
+          item.style.padding = "0.5rem 0";
+          item.innerHTML = `<strong>${t.titulo}</strong><br/>
+            Concluída em: ${t.concluded_at} por ${t.concluded_by}`;
+          lista.appendChild(item);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar tarefas concluídas:", err.message);
+      }
+    }
+    
     document.getElementById("form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
@@ -327,26 +351,7 @@
         console.error("Erro ao adicionar tarefa:", err);
       }
     });
-
-    function abrirModalEdicao(tarefa) {
-      document.getElementById("overlay").style.display = "block";
-      const editModal = document.getElementById("editModal");
-      editModal.style.display = "block";
-      const editForm = document.getElementById("editForm");
-      editForm.id.value = tarefa.id;
-      editForm.titulo.value = tarefa.titulo;
-      editForm.descricao.value = tarefa.descricao;
-      editForm.status.value = tarefa.status;
-      editForm.tags.value = tarefa.tags;
-      editForm.data_limite.value = tarefa.data_limite;
-      editForm.responsavel.value = tarefa.responsavel;
-    }
-
-    function fecharModal() {
-      document.getElementById("overlay").style.display = "none";
-      document.getElementById("editModal").style.display = "none";
-    }
-
+    
     document.getElementById("editForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const editForm = e.target;
@@ -379,22 +384,41 @@
         console.error("Erro ao editar tarefa:", err);
       }
     });
-
+    
+    function abrirModalEdicao(tarefa) {
+      document.getElementById("overlay").style.display = "block";
+      const editModal = document.getElementById("editModal");
+      editModal.style.display = "block";
+      const editForm = document.getElementById("editForm");
+      editForm.id.value = tarefa.id;
+      editForm.titulo.value = tarefa.titulo;
+      editForm.descricao.value = tarefa.descricao;
+      editForm.status.value = tarefa.status;
+      editForm.tags.value = tarefa.tags;
+      editForm.data_limite.value = tarefa.data_limite;
+      editForm.responsavel.value = tarefa.responsavel;
+    }
+    
+    function fecharModal() {
+      document.getElementById("overlay").style.display = "none";
+      document.getElementById("editModal").style.display = "none";
+    }
+    
     function abrirCompleteModal(tarefa) {
       tarefaParaConcluir = tarefa;
       document.getElementById("completeOverlay").style.display = "block";
       document.getElementById("completeModal").style.display = "block";
       document.getElementById("concludedBy").value = "";
     }
-
+    
     function fecharCompleteModal() {
       tarefaParaConcluir = null;
       document.getElementById("completeOverlay").style.display = "none";
       document.getElementById("completeModal").style.display = "none";
     }
-
+    
     let tarefaParaConcluir = null;
-
+    
     document.getElementById("confirmComplete").addEventListener("click", async () => {
       const concludedBy = document.getElementById("concludedBy").value.trim();
       if (!concludedBy) {
@@ -421,7 +445,45 @@
         console.error("Erro ao concluir tarefa:", err);
       }
     });
-
+    
+    document.getElementById("btnConcluidos").addEventListener("click", async () => {
+      document.getElementById("concludedOverlay").style.display = "block";
+      document.getElementById("concludedModal").style.display = "block";
+      await carregarConcluidas();
+    });
+    
+    function fecharConcludedModal() {
+      document.getElementById("concludedOverlay").style.display = "none";
+      document.getElementById("concludedModal").style.display = "none";
+    }
+    
+    async function carregarConcluidas() {
+      try {
+        const response = await fetch("public/concluded.csv");
+        if (!response.ok) throw new Error("Não foi possível carregar o arquivo de tarefas concluídas.");
+        const text = await response.text();
+        const linhas = text.trim().split("\n").slice(1);
+        const concluidas = linhas.map(linha => {
+          let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
+          campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
+          while (campos.length < 9) { campos.push(""); }
+          const [id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial] = campos;
+          return { id, titulo, descricao, status_inicial, tags, data_limite, concluded_at, concluded_by, responsavel_inicial };
+        });
+        const lista = document.getElementById("listaConcluidas");
+        lista.innerHTML = "";
+        concluidas.forEach(t => {
+          const item = document.createElement("div");
+          item.style.borderBottom = "1px solid #eee";
+          item.style.padding = "0.5rem 0";
+          item.innerHTML = `<strong>${t.titulo}</strong><br/>Concluída em: ${t.concluded_at} por ${t.concluded_by}`;
+          lista.appendChild(item);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar tarefas concluídas:", err.message);
+      }
+    }
+    
     carregarTarefas();
   </script>
 </body>
