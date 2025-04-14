@@ -1,9 +1,18 @@
 /* =====================  UTILIDADES  ===================== */
+let avisoTimer = null;                     // controla o tempo de ocultar
+
 function exibirAviso(txt) {
   const el = document.getElementById("aviso");
   el.textContent = txt;
   el.style.display = "block";
+
+  // reinicia o temporizador de 8 s
+  clearTimeout(avisoTimer);
+  avisoTimer = setTimeout(() => {
+    el.style.display = "none";
+  }, 8000);
 }
+
 function salvarTarefaLocal(t) {
   const arr = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
   arr.push(t);
@@ -19,7 +28,6 @@ function salvarEdicaoLocal(t) {
 /* =====================  CARREGA CSV E RENDERIZA  ===================== */
 async function carregarTarefas() {
   try {
-    // tenta /tasks.csv ou /public/tasks.csv
     let res = await fetch("/tasks.csv");
     if (!res.ok) res = await fetch("/public/tasks.csv");
     if (!res.ok) throw new Error("CSV não encontrado");
@@ -157,7 +165,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     alert(j.message || j.error);
 
     fecharModal();
-    exibirAviso("Sua edição foi enviada, aguarde atualização...");
+    exibirAviso("Sua tarefa foi enviada, aguarde atualização...");
     salvarEdicaoLocal(edit);
     carregarTarefas();
 
@@ -187,7 +195,8 @@ async function confirmarConclusao(tarefa) {
     const json = await res.json();
     alert(json.message || json.error);
 
-    carregarTarefas();          // atualiza o quadro
+    exibirAviso("Sua tarefa foi enviada, aguarde atualização...");
+    carregarTarefas();
   } catch (err) {
     console.error("Erro ao concluir:", err);
     alert("Falha ao concluir tarefa.");
