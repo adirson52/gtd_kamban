@@ -10,3 +10,4 @@ id,titulo,descricao,status_inicial,tags,data_limite,concluded_at,concluded_by,re
 2,""Tarefa 01"","""",""em_andamento"",""sasa"",""asassa"","2025-04-14T02:03:25.536Z","freitas",""freitas""
 4,""Teste 3"","""",""com_data"",""https://gtd-kamban.vercel.app"",""10/08"","2025-04-14T11:18:07.351Z","freitas",""freitas""
 5,""Teste"",""Test"",""urgente"",""Ggh"",""10/10/2025"","2025-04-14T11:19:06.727Z","freitas",""freitas""
+1,""Dar Nota Pecege (08 de 15)"","""",""com_data"",""Pecege"",""14/04/2025"","2025-04-14T13:01:24.459Z","Marcus",""Marcus""
