@@ -6,8 +6,7 @@ function exibirAviso(txt) {
   el.textContent = txt;
   el.style.display = "block";
 
-  // reinicia o temporizador de 8 s
-  clearTimeout(avisoTimer);
+  clearTimeout(avisoTimer);                // reinicia
   avisoTimer = setTimeout(() => {
     el.style.display = "none";
   }, 8000);
@@ -31,6 +30,7 @@ async function carregarTarefas() {
     let res = await fetch("/tasks.csv");
     if (!res.ok) res = await fetch("/public/tasks.csv");
     if (!res.ok) throw new Error("CSV não encontrado");
+
     const texto = await res.text();
     const linhas = texto.trim().split("\n").slice(1);
 
@@ -47,7 +47,7 @@ async function carregarTarefas() {
     const tarefas = tarefasCSV.length ? tarefasCSV : cache;
 
     const colunas = {
-      urgente: "Urgente",
+      urgente: "ASD",            // rótulo trocado
       nao_iniciado: "Não Iniciado",
       em_andamento: "Em Andamento",
       com_data: "Com Data",
@@ -80,8 +80,18 @@ async function carregarTarefas() {
             <button class="done-btn">Done</button>
           `;
 
-          card.querySelector(".edit-btn").onclick = () => abrirModalEdicao(t);
-          card.querySelector(".done-btn").onclick = () => confirmarConclusao(t);
+          // Botões
+          card.querySelector(".edit-btn").onclick = (e) => {
+            e.stopPropagation();
+            abrirModalEdicao(t);
+          };
+          card.querySelector(".done-btn").onclick = (e) => {
+            e.stopPropagation();
+            confirmarConclusao(t);
+          };
+
+          // Clique no cartão = modal leitura
+          card.onclick = () => abrirModalLeitura(t);
 
           col.appendChild(card);
         });
@@ -203,6 +213,36 @@ async function confirmarConclusao(tarefa) {
   }
 }
 
+/* =====================  MODAL LEITURA (view‑only)  ===================== */
+function abrirModalLeitura(t) {
+  document.getElementById("readOverlay").style.display = "block";
+  const m = document.getElementById("readModal");
+  m.style.display = "block";
+
+  document.getElementById("readTitulo").textContent = t.titulo;
+  document.getElementById("readDescricao").textContent =
+    t.descricao || "(sem descrição)";
+  document.getElementById("readPrazo").textContent = t.data_limite
+    ? "Prazo: " + t.data_limite
+    : "";
+  document.getElementById("readResp").textContent = t.responsavel
+    ? "Responsável: " + t.responsavel
+    : "";
+
+  const tagsEl = document.getElementById("readTags");
+  tagsEl.innerHTML = t.tags
+    .split(";")
+    .filter(Boolean)
+    .map((tag) => `<span>${tag}</span>`)
+    .join("");
+}
+function fecharModalLeitura() {
+  document.getElementById("readOverlay").style.display = "none";
+  document.getElementById("readModal").style.display = "none";
+}
+document.getElementById("fecharRead").onclick = fecharModalLeitura;
+document.getElementById("readOverlay").onclick = fecharModalLeitura;
+
 /* =====================  MODAL CONCLUÍDAS  ===================== */
 const modal = document.getElementById("modal-concluidas");
 const lista = document.getElementById("lista-concluidas");
@@ -227,8 +267,16 @@ document.getElementById("btn-concluidas").onclick = async () => {
       const cols = l
         .split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/)
         .map((c) => c.replace(/\"/g, ""));
-      const [id, titulo, desc, status, tags, data_limite, concluded_at, concluded_by] =
-        cols;
+      const [
+        id,
+        titulo,
+        desc,
+        status,
+        tags,
+        data_limite,
+        concluded_at,
+        concluded_by,
+      ] = cols;
 
       const div = document.createElement("div");
       div.className = "card";
