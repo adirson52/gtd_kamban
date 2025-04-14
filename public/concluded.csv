@@ -8,3 +8,4 @@ id,titulo,descricao,status_inicial,tags,data_limite,concluded_at,concluded_by,re
 5,""Atividade 02"","""",""nao_iniciado"",""Test"",""11/04"","2025-04-14T01:52:52.486Z","freitas",""freitas""
 6,""teste 01"","""",""nao_iniciado"",""faculdade"",""10/10/2025"","2025-04-14T02:03:22.738Z","freitas",""freitas""
 2,""Tarefa 01"","""",""em_andamento"",""sasa"",""asassa"","2025-04-14T02:03:25.536Z","freitas",""freitas""
+4,""Teste 3"","""",""com_data"",""https://gtd-kamban.vercel.app"",""10/08"","2025-04-14T11:18:07.351Z","freitas",""freitas""
