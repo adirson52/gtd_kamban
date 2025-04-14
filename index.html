@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kanban de Atividades – Freitas</title>
-
-  <!-- CSS externo -->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -16,7 +14,7 @@
   <form id="form">
     <input name="titulo" placeholder="Título da tarefa" required />
     <select name="status">
-      <option value="urgente">Urgente</option>
+      <option value="urgente">ASD</option>
       <option value="nao_iniciado">Não Iniciado</option>
       <option value="em_andamento">Em Andamento</option>
       <option value="com_data">Com Data</option>
@@ -27,7 +25,7 @@
     <button type="submit">Adicionar Tarefa</button>
   </form>
 
-  <!-- BOTÃO VER CONCLUÍDAS (abaixo do formulário) -->
+  <!-- BOTÃO VER CONCLUÍDAS -->
   <div class="concluidas-wrapper">
     <button id="btn-concluidas">Ver Concluídas</button>
   </div>
@@ -38,17 +36,6 @@
   <!-- QUADRO KANBAN -->
   <div class="kanban" id="kanban"></div>
 
-  <!-- MODAL CONCLUÍDAS -->
-  <div id="modal-concluidas">
-    <div class="box">
-      <div class="modal-head">
-        <h2>Tarefas Concluídas</h2>
-        <button id="close-modal">✕</button>
-      </div>
-      <div id="lista-concluidas"></div>
-    </div>
-  </div>
-
   <!-- MODAL EDIÇÃO -->
   <div id="overlay"></div>
   <div id="editModal">
@@ -58,7 +45,7 @@
       <input name="titulo" placeholder="Título da tarefa" required />
       <input name="descricao" placeholder="Descrição (opcional)" />
       <select name="status">
-        <option value="urgente">Urgente</option>
+        <option value="urgente">ASD</option>
         <option value="nao_iniciado">Não Iniciado</option>
         <option value="em_andamento">Em Andamento</option>
         <option value="com_data">Com Data</option>
@@ -71,19 +58,29 @@
     </form>
   </div>
 
-<!-- MODAL DE LEITURA (view‑only) -->
-<div id="readOverlay" class="overlay"></div>
-<div id="readModal" class="read-modal">
-  <h3 id="readTitulo"></h3>
-  <p id="readDescricao" class="read-desc"></p>
-  <div id="readTags" class="read-tags"></div>
-  <p id="readPrazo"  class="read-date"></p>
-  <p id="readResp"  class="read-date"></p>
-  <button id="fecharRead" class="read-close">OK</button>
-</div>
+  <!-- MODAL CONCLUÍDAS -->
+  <div id="modal-concluidas" class="hidden">
+    <div class="box">
+      <div class="modal-head">
+        <h2>Tarefas Concluídas</h2>
+        <button id="close-modal">✕</button>
+      </div>
+      <div id="lista-concluidas"></div>
+    </div>
+  </div>
 
-  
-  <!-- JS externo -->
+  <!-- MODAL LEITURA (Apple-style) -->
+  <div id="readOverlay" class="overlay"></div>
+  <div id="readModal" class="read-modal">
+    <h3 id="readTitulo">Título</h3>
+    <p id="readDescricao" class="read-desc"></p>
+    <div id="readTags" class="read-tags"></div>
+    <p id="readPrazo"  class="read-date"></p>
+    <p id="readResp"   class="read-date"></p>
+    <button id="fecharRead" class="read-close">OK</button>
+  </div>
+
+  <!-- SCRIPT FINAL -->
   <script src="script.js"></script>
 </body>
 </html>
