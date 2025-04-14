@@ -18,6 +18,8 @@ input,select,button{
 }
 button{cursor:pointer}
 
+form > *{width:100%}
+
 /* ---------- BOTÃO CONCLUÍDAS ---------- */
 /* ---------- BOTÃO CONCLUÍDAS ---------- */
 .concluidas-wrapper{
