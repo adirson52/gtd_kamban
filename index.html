@@ -144,6 +144,26 @@
 
   <div class="kanban" id="kanban"></div>
 
+  <!-- Botão para abrir a lista de concluídas -->
+<div class="w-full flex justify-end max-w-4xl mx-auto mb-4 px-2">
+  <button id="btn-concluidas"
+          class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow">
+    Ver Concluídas
+  </button>
+</div>
+
+<!-- Modal de tarefas concluídas -->
+<div id="modal-concluidas"
+     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl w-11/12 sm:w-3/4 lg:w-1/2 max-h-[90vh] overflow-y-auto shadow-xl p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Tarefas Concluídas</h2>
+      <button id="close-modal" class="text-xl font-bold">✕</button>
+    </div>
+    <div id="lista-concluidas" class="space-y-3"></div>
+  </div>
+</div>
+
   <!-- Modal de edição -->
   <div id="overlay"></div>
   <div id="editModal">
@@ -362,7 +382,59 @@
       avisoDiv.style.display = "block";
       avisoDiv.innerText = texto;
     }
+<script>
+  // --- BOTÃO abre modal ---
+  const modal       = document.getElementById('modal-concluidas');
+  const listaEl     = document.getElementById('lista-concluidas');
 
+  document.getElementById('btn-concluidas').onclick = async () => {
+    modal.classList.remove('hidden');
+    listaEl.innerHTML = '<p class="text-sm text-gray-500">Carregando...</p>';
+
+    try {
+      const res   = await fetch('/public/concluded.csv');
+      if (!res.ok) throw new Error('Falha ao buscar concluded.csv');
+      const text  = await res.text();
+      const linhas = text.trim().split('\n').slice(1);        // ignora cabeçalho
+
+      if (linhas.length === 0) {
+        listaEl.innerHTML = '<p class="text-sm text-gray-500">Nenhuma tarefa concluída ainda.</p>';
+        return;
+      }
+
+      listaEl.innerHTML = '';
+      linhas.forEach(l => {
+        // divide respeitando vírgulas dentro de aspas
+        const cols = l.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/).map(c => c.replace(/\"/g,''));
+        const [id,titulo,desc,status,tags,data_limite,concluded_at,concluded_by] = cols;
+
+        const card = document.createElement('div');
+        card.className = 'bg-gray-100 rounded-lg p-4 shadow';
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-medium">${titulo}</span>
+            <span class="text-xs text-gray-500">${new Date(concluded_at).toLocaleDateString()}</span>
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1">
+            ${tags.split(';').filter(Boolean)
+                  .map(t=>`<span class="text-xs bg-gray-500 text-white px-1 rounded">${t}</span>`)
+                  .join('')}
+          </div>
+          <p class="text-xs mt-1 text-gray-600">Concluído por: ${concluded_by || '-'}</p>`;
+        listaEl.appendChild(card);
+      });
+    } catch (err) {
+      listaEl.innerHTML = '<p class="text-sm text-red-500">Erro ao carregar concluídas.</p>';
+      console.error(err);
+    }
+  };
+
+  // --- FECHA modal (botão ✕ ou clicar fora) ---
+  document.getElementById('close-modal').onclick = () => modal.classList.add('hidden');
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+</script>
+
+  
     // Carrega as tarefas ao abrir a página
     carregarTarefas();
   </script>
