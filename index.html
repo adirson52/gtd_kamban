@@ -2,15 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lista de Atividades</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanban de Atividades - Freitas</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <h1>Kanban de Atividades (Com Edição)</h1>
 
-  <!-- FORMULÁRIO NOVA TAREFA -->
   <form id="form">
     <input name="titulo" placeholder="Título da tarefa" required />
     <select name="status">
@@ -25,18 +23,13 @@
     <button type="submit">Adicionar Tarefa</button>
   </form>
 
-  <!-- BOTÃO VER CONCLUÍDAS -->
   <div class="concluidas-wrapper">
     <button id="btn-concluidas">Ver Concluídas</button>
   </div>
 
-  <!-- AVISO -->
   <div id="aviso"></div>
-
-  <!-- QUADRO KANBAN -->
   <div class="kanban" id="kanban"></div>
 
-  <!-- MODAL EDIÇÃO -->
   <div id="overlay"></div>
   <div id="editModal">
     <h3>Editar Tarefa</h3>
@@ -50,37 +43,34 @@
         <option value="em_andamento">Em Andamento</option>
         <option value="com_data">Com Data</option>
       </select>
-      <input name="tags" placeholder="Tags (ex: faculdade;cws)" />
-      <input name="data_limite" placeholder="Data limite (YYYY-MM-DD)" />
+      <input name="tags" placeholder="Tags" />
+      <input name="data_limite" placeholder="Data limite" />
       <input name="responsavel" placeholder="Responsável" />
-      <button type="submit">Salvar Alterações</button>
+      <button type="submit">Salvar</button>
       <button type="button" onclick="fecharModal()">Cancelar</button>
     </form>
   </div>
 
-  <!-- MODAL CONCLUÍDAS -->
   <div id="modal-concluidas" class="hidden">
     <div class="box">
       <div class="modal-head">
         <h2>Tarefas Concluídas</h2>
-        <button id="close-modal">✕</button>
+        <button id="close-modal">&#10005;</button>
       </div>
       <div id="lista-concluidas"></div>
     </div>
   </div>
 
-  <!-- MODAL LEITURA (Apple-style) -->
   <div id="readOverlay" class="overlay"></div>
   <div id="readModal" class="read-modal">
-    <h3 id="readTitulo">Título</h3>
+    <h3 id="readTitulo"></h3>
     <p id="readDescricao" class="read-desc"></p>
     <div id="readTags" class="read-tags"></div>
-    <p id="readPrazo"  class="read-date"></p>
-    <p id="readResp"   class="read-date"></p>
+    <p id="readPrazo" class="read-date"></p>
+    <p id="readResp" class="read-date"></p>
     <button id="fecharRead" class="read-close">OK</button>
   </div>
 
-  <!-- SCRIPT FINAL -->
   <script src="script.js"></script>
 </body>
 </html>
