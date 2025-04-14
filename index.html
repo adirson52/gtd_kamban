@@ -3,128 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kanban de Atividades - Freitas (Edição)</title>
+  <title>Kanban de Atividades – Freitas (Edição)</title>
+
+  <!-- =====================  ESTILOS  ===================== -->
   <style>
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial;
-      background: #f9f9f9;
-      color: #222;
+    /* ---------- GERAL ---------- */
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+      background:#f9f9f9;
+      color:#222;
     }
-    h1 {
-      text-align: center;
-      padding: 1rem;
-      font-weight: 500;
+    h1{margin:0;text-align:center;padding:1rem;font-weight:500;}
+
+    /* ---------- FORMULÁRIO ---------- */
+    form{
+      max-width:600px;margin:1rem auto;
+      display:flex;flex-direction:column;gap:.5rem;
     }
-    form {
-      max-width: 600px;
-      margin: 1rem auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+    input,select,button{
+      padding:.5rem;font-size:1rem;border:1px solid #ccc;border-radius:6px;
     }
-    input, select, button {
-      padding: 0.5rem;
-      font-size: 1rem;
+    button{cursor:pointer}
+
+    /* ---------- BOTÃO “VER CONCLUÍDAS” ---------- */
+    .concluidas-wrapper{
+      max-width:600px;margin:0 auto 1rem;display:flex;justify-content:flex-end;
+      padding:0 1rem;
     }
-    .kanban {
-      display: flex;
-      gap: 1rem;
-      padding: 1rem;
-      overflow-x: auto;
+    #btn-concluidas{
+      background:#2e7d32;color:#fff;border:none;
+      padding:.5rem 1rem;border-radius:6px;font-weight:500;
+      box-shadow:0 2px 4px rgba(0,0,0,.1);transition:background .2s;
     }
-    .column {
-      flex: 1;
-      background: #fff;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      min-width: 250px;
+    #btn-concluidas:hover{background:#27672b;}
+
+    /* ---------- KANBAN ---------- */
+    .kanban{display:flex;gap:1rem;padding:1rem;overflow-x:auto;}
+    .column{
+      flex:1;min-width:250px;background:#fff;border-radius:12px;padding:1rem;
+      box-shadow:0 2px 6px rgba(0,0,0,.1);
     }
-    .column h2 {
-      margin-top: 0;
-      font-size: 1.2rem;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 0.5rem;
+    .column h2{
+      margin:0 0 .5rem;font-size:1.2rem;border-bottom:1px solid #eee;padding-bottom:.5rem;
     }
-    .card {
-      background: #f1f1f1;
-      border-radius: 8px;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      position: relative;
+    .card{
+      background:#f1f1f1;border-radius:8px;padding:.5rem;margin-bottom:.5rem;position:relative;
     }
-    .card .title {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
+    .card .title{font-weight:600;margin-bottom:.25rem;}
+    .card .tags{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.25rem;}
+    .tag{
+      background:#d0d0d0;border-radius:4px;padding:2px 6px;font-size:.75rem;
     }
-    .card .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
-      margin-top: 0.25rem;
+    .card .date{font-size:.75rem;color:#666;margin-top:.25rem;}
+    .edit-btn{
+      position:absolute;top:5px;right:5px;
+      background:#ffc107;border:none;border-radius:4px;
+      padding:.25rem .5rem;font-size:.8rem;cursor:pointer;
     }
-    .tag {
-      background: #d0d0d0;
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 0.75rem;
+
+    /* ---------- AVISO TEMPORÁRIO ---------- */
+    #aviso{
+      display:none;text-align:center;padding:1rem;
+      background:#e0f7fa;color:#00796b;font-weight:600;
+      margin:1rem auto;max-width:600px;border-radius:8px;
     }
-    .card .date {
-      font-size: 0.75rem;
-      color: #666;
-      margin-top: 0.25rem;
+
+    /* ---------- MODAL CONCLUÍDAS ---------- */
+    #modal-concluidas{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.5);backdrop-filter:blur(2px);
+      align-items:center;justify-content:center;z-index:1000;
     }
-    .edit-btn {
-      position: absolute;
-      top: 5px; right: 5px;
-      background: #ffc107;
-      border: none;
-      border-radius: 4px;
-      padding: 0.25rem 0.5rem;
-      cursor: pointer;
-      font-size: 0.8rem;
+    #modal-concluidas .box{
+      background:#fff;border-radius:12px;padding:1rem;
+      width:90%;max-width:600px;max-height:90vh;overflow-y:auto;
+      box-shadow:0 2px 10px rgba(0,0,0,.3);
     }
-    /* Aviso temporário */
-    #aviso {
-      text-align: center;
-      padding: 1rem;
-      background-color: #e0f7fa;
-      color: #00796b;
-      font-weight: 600;
-      margin: 1rem auto;
-      max-width: 600px;
-      border-radius: 8px;
-      display: none;
+    #modal-concluidas h2{margin:0 0 .5rem;}
+    #close-modal{background:none;border:none;font-size:1.25rem;cursor:pointer;}
+
+    /* ---------- MODAL EDIÇÃO ---------- */
+    #overlay{
+      display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;
     }
-    /* Modal de edição */
-    #editModal {
-      display: none; 
-      position: fixed; 
-      z-index: 1000; 
-      top: 50%; left: 50%; 
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      max-width: 400px;
-      width: 100%;
+    #editModal{
+      display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      background:#fff;border-radius:12px;padding:1rem;z-index:901;
+      box-shadow:0 2px 10px rgba(0,0,0,.3);width:90%;max-width:400px;
     }
-    #overlay {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-    }
+    #editModal h3{margin-top:0}
+    #editModal form{gap:.5rem}
   </style>
 </head>
+
 <body>
   <h1>Kanban de Atividades (Com Edição)</h1>
 
-  <!-- Formulário para adicionar nova tarefa (igual antes) -->
+  <!-- BOTÃO VER CONCLUÍDAS -->
+  <div class="concluidas-wrapper">
+    <button id="btn-concluidas">Ver Concluídas</button>
+  </div>
+
+  <!-- FORMULÁRIO DE NOVA TAREFA -->
   <form id="form">
     <input name="titulo" placeholder="Título da tarefa" required />
     <select name="status">
@@ -139,12 +121,24 @@
     <button type="submit">Adicionar Tarefa</button>
   </form>
 
-  <!-- Aviso temporário -->
+  <!-- AVISO -->
   <div id="aviso"></div>
 
+  <!-- KANBAN -->
   <div class="kanban" id="kanban"></div>
 
-  <!-- Modal de edição -->
+  <!-- MODAL CONCLUÍDAS -->
+  <div id="modal-concluidas">
+    <div class="box">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Tarefas Concluídas</h2>
+        <button id="close-modal">✕</button>
+      </div>
+      <div id="lista-concluidas"></div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIÇÃO -->
   <div id="overlay"></div>
   <div id="editModal">
     <h3>Editar Tarefa</h3>
@@ -166,204 +160,163 @@
     </form>
   </div>
 
+  <!-- =====================  SCRIPT  ===================== -->
   <script>
-    // ====== CÓDIGO DE CRIAÇÃO DE TAREFA (igual antes) =======
-    function salvarTarefaLocal(tarefa) {
-      const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
-      tarefasCache.push(tarefa);
-      localStorage.setItem("tarefasCache", JSON.stringify(tarefasCache));
+    /* --------- UTILIDADES --------- */
+    function exibirAviso(txt){
+      const el=document.getElementById('aviso');
+      el.textContent=txt;el.style.display='block';
+    }
+    function salvarTarefaLocal(t){
+      const arr=JSON.parse(localStorage.getItem('tarefasCache')||'[]');
+      arr.push(t);localStorage.setItem('tarefasCache',JSON.stringify(arr));
+    }
+    function salvarEdicaoLocal(t){
+      let arr=JSON.parse(localStorage.getItem('tarefasCacheEditar')||'[]');
+      arr=arr.filter(x=>x.id!==t.id);arr.push(t);
+      localStorage.setItem('tarefasCacheEditar',JSON.stringify(arr));
     }
 
-    async function carregarTarefas() {
-      try {
-        const response = await fetch("public/tasks.csv");
-        if (!response.ok) throw new Error("Não foi possível carregar o arquivo CSV.");
-        const text = await response.text();
-        const linhas = text.trim().split("\n").slice(1); // ignora cabeçalho
+    /* --------- CARREGA CSV / RENDERIZA KANBAN --------- */
+    async function carregarTarefas(){
+      try{
+        const res=await fetch('public/tasks.csv');
+        if(!res.ok)throw new Error('Falha ao buscar CSV');
+        const texto=await res.text();
+        const linhas=texto.trim().split('\\n').slice(1);
 
-        const tarefasCSV = linhas.map(linha => {
-          let campos = linha.match(/(".*?"|[^",]+)(?=,|$)/g) || [];
-          campos = campos.map(c => c.replace(/^"|"$/g, '').trim());
-          while (campos.length < 7) campos.push("");
-          const [id, titulo, descricao, status, tags, data_limite, responsavel] = campos;
-          return { id, titulo, descricao, status, tags, data_limite, responsavel };
+        const tarefasCSV=linhas.map(l=>{
+          const campos=(l.match(/(\".*?\"|[^\",]+)(?=,|$)/g)||[])
+            .map(c=>c.replace(/^\"|\"$/g,'').trim());
+          while(campos.length<7)campos.push('');
+          const [id,titulo,descricao,status,tags,data_limite,responsavel]=campos;
+          return {id,titulo,descricao,status,tags,data_limite,responsavel};
         });
 
-        // Se há dados no CSV, limpa cache
-        if (tarefasCSV.length > 0) {
-          localStorage.removeItem("tarefasCache");
-        }
+        if(tarefasCSV.length>0)localStorage.removeItem('tarefasCache');
+        const cache=JSON.parse(localStorage.getItem('tarefasCache')||'[]');
+        const tarefas=tarefasCSV.length?tarefasCSV:cache;
 
-        const tarefasCache = JSON.parse(localStorage.getItem("tarefasCache") || "[]");
-        const todasTarefas = tarefasCSV.length > 0 ? tarefasCSV : tarefasCache;
-
-        // Renderiza no kanban
-        const colunas = {
-          urgente: "Urgente",
-          nao_iniciado: "Não Iniciado",
-          em_andamento: "Em Andamento",
-          com_data: "Com Data"
+        const colunas={
+          urgente:'Urgente',
+          nao_iniciado:'Não Iniciado',
+          em_andamento:'Em Andamento',
+          com_data:'Com Data'
         };
+        const kanban=document.getElementById('kanban');
+        kanban.innerHTML='';
 
-        const kanbanDiv = document.getElementById("kanban");
-        kanbanDiv.innerHTML = "";
-
-        Object.entries(colunas).forEach(([key, label]) => {
-          const col = document.createElement("div");
-          col.className = "column";
-          col.innerHTML = `<h2>${label}</h2>`;
-          todasTarefas
-            .filter(t => t.status === key)
-            .forEach(t => {
-              const card = document.createElement("div");
-              card.className = "card";
-              // Botão Editar
-              card.innerHTML = `
-                <div class="title">${t.titulo}</div>
-                <div class="tags">${t.tags.split(";").map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
-                ${t.data_limite ? `<div class="date">Prazo: ${t.data_limite}</div>` : ""}
-                <button class="edit-btn">Editar</button>
-              `;
-              // Ao clicar em "Editar", abrimos o modal
-              card.querySelector(".edit-btn").addEventListener("click", () => {
-                abrirModalEdicao(t);
-              });
-              col.appendChild(card);
-            });
-          kanbanDiv.appendChild(col);
+        Object.entries(colunas).forEach(([key,label])=>{
+          const col=document.createElement('div');
+          col.className='column';
+          col.innerHTML='<h2>'+label+'</h2>';
+          tarefas.filter(t=>t.status===key).forEach(t=>{
+            const card=document.createElement('div');
+            card.className='card';
+            card.innerHTML=`
+              <div class="title">${t.titulo}</div>
+              <div class="tags">${t.tags.split(';').filter(Boolean).map(tag=>'<span class="tag">'+tag+'</span>').join('')}</div>
+              ${t.data_limite?'<div class="date">Prazo: '+t.data_limite+'</div>':''}
+              <button class="edit-btn">Editar</button>
+            `;
+            card.querySelector('.edit-btn').onclick=()=>abrirModalEdicao(t);
+            col.appendChild(card);
+          });
+          kanban.appendChild(col);
         });
-      } catch (err) {
-        console.error("Erro ao carregar CSV:", err.message);
-      }
+      }catch(err){console.error(err)}
     }
 
-    document.getElementById("form").addEventListener("submit", async (e) => {
+    /* --------- NOVA TAREFA --------- */
+    document.getElementById('form').addEventListener('submit',async e=>{
       e.preventDefault();
-      const form = e.target;
-      const novaTarefa = {
-        // Para criar uma nova, geramos ID provisório (ex: Date.now()) ou deixamos a API atribuir.
-        id: Date.now().toString(),
-        titulo: form.titulo.value,
-        descricao: "", // não tem no formulário de criação
-        status: form.status.value,
-        tags: form.tags.value,
-        data_limite: form.data_limite.value,
-        responsavel: form.responsavel.value
+      const f=e.target;
+      const nova={
+        id:Date.now().toString(),
+        titulo:f.titulo.value,
+        descricao:'',
+        status:f.status.value,
+        tags:f.tags.value,
+        data_limite:f.data_limite.value,
+        responsavel:f.responsavel.value
       };
-      try {
-        const res = await fetch("/api/save-task", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(novaTarefa)
-        });
-        const json = await res.json();
-        alert(json.message || json.error);
-
-        // limpa formulário
-        form.reset();
-
-        // Exibe aviso
-        exibirAviso("Sua tarefa foi enviada, aguarde atualização...");
-
-        // Salva local
-        salvarTarefaLocal(novaTarefa);
-
-        // Recarrega interface
-        carregarTarefas();
-
-        // Após 10s, limpa cache e recarrega
-        setTimeout(() => {
-          localStorage.removeItem("tarefasCache");
-          location.reload();
-        }, 10000);
-      } catch (err) {
-        console.error("Erro ao adicionar tarefa:", err);
-      }
+      try{
+        const r=await fetch('/api/save-task',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(nova)});
+        const j=await r.json();alert(j.message||j.error);
+        f.reset();exibirAviso('Sua tarefa foi enviada, aguarde atualização...');
+        salvarTarefaLocal(nova);carregarTarefas();
+        setTimeout(()=>{localStorage.removeItem('tarefasCache');location.reload()},10000);
+      }catch(err){console.error(err)}
     });
 
-    // ====== CÓDIGO DE EDIÇÃO DE TAREFA =======
-    // Abre modal, preenche form com dados da tarefa
-    function abrirModalEdicao(tarefa) {
-      document.getElementById("overlay").style.display = "block";
-      const editModal = document.getElementById("editModal");
-      editModal.style.display = "block";
-      // preenche o form
-      const editForm = document.getElementById("editForm");
-      editForm.id.value = tarefa.id;
-      editForm.titulo.value = tarefa.titulo;
-      editForm.descricao.value = tarefa.descricao;
-      editForm.status.value = tarefa.status;
-      editForm.tags.value = tarefa.tags;
-      editForm.data_limite.value = tarefa.data_limite;
-      editForm.responsavel.value = tarefa.responsavel;
+    /* --------- MODAL EDIÇÃO --------- */
+    function abrirModalEdicao(t){
+      document.getElementById('overlay').style.display='block';
+      const m=document.getElementById('editModal');m.style.display='block';
+      const f=document.getElementById('editForm');
+      Object.keys(t).forEach(k=>{if(f[k])f[k].value=t[k]});
     }
-
-    // Fecha modal
-    function fecharModal() {
-      document.getElementById("overlay").style.display = "none";
-      document.getElementById("editModal").style.display = "none";
+    function fecharModal(){
+      document.getElementById('overlay').style.display='none';
+      document.getElementById('editModal').style.display='none';
     }
-
-    // Submissão do form de edição
-    document.getElementById("editForm").addEventListener("submit", async (e) => {
+    document.getElementById('editForm').addEventListener('submit',async e=>{
       e.preventDefault();
-      const editForm = e.target;
-      const tarefaEditada = {
-        id: editForm.id.value,
-        titulo: editForm.titulo.value,
-        descricao: editForm.descricao.value,
-        status: editForm.status.value,
-        tags: editForm.tags.value,
-        data_limite: editForm.data_limite.value,
-        responsavel: editForm.responsavel.value
+      const f=e.target;
+      const edit={
+        id:f.id.value,titulo:f.titulo.value,descricao:f.descricao.value,
+        status:f.status.value,tags:f.tags.value,data_limite:f.data_limite.value,
+        responsavel:f.responsavel.value
       };
-      try {
-        const res = await fetch("/api/edit-task", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(tarefaEditada)
-        });
-        const json = await res.json();
-        alert(json.message || json.error);
-
-        fecharModal();
-        // Exibe aviso
-        exibirAviso("Sua edição foi enviada, aguarde atualização...");
-
-        // Salva localmente no cache para exibir de imediato
-        salvarEdicaoLocal(tarefaEditada);
-
-        // Recarrega a interface
-        carregarTarefas();
-
-        // Após 10s, limpa cache e recarrega
-        setTimeout(() => {
-          localStorage.removeItem("tarefasCacheEditar");
-          location.reload();
-        }, 10000);
-      } catch (err) {
-        console.error("Erro ao editar tarefa:", err);
-      }
+      try{
+        const r=await fetch('/api/edit-task',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(edit)});
+        const j=await r.json();alert(j.message||j.error);
+        fecharModal();exibirAviso('Sua edição foi enviada, aguarde atualização...');
+        salvarEdicaoLocal(edit);carregarTarefas();
+        setTimeout(()=>{localStorage.removeItem('tarefasCacheEditar');location.reload()},10000);
+      }catch(err){console.error(err)}
     });
 
-    // Salva edições localmente (pode ser outro localStorage)
-    function salvarEdicaoLocal(tarefaEditada) {
-      // ex: "tarefasCacheEditar"
-      const cacheEditar = JSON.parse(localStorage.getItem("tarefasCacheEditar") || "[]");
-      // Remove caso já exista e substitui
-      const filtrado = cacheEditar.filter(t => t.id !== tarefaEditada.id);
-      filtrado.push(tarefaEditada);
-      localStorage.setItem("tarefasCacheEditar", JSON.stringify(filtrado));
-    }
+    /* --------- MODAL CONCLUÍDAS --------- */
+    const modal=document.getElementById('modal-concluidas');
+    const lista=document.getElementById('lista-concluidas');
+    document.getElementById('btn-concluidas').onclick=async()=>{
+      modal.style.display='flex';
+      lista.innerHTML='<p>Carregando...</p>';
+      try{
+        const r=await fetch('/public/concluded.csv');
+        if(!r.ok)throw new Error('Falha ao buscar concluded.csv');
+        const txt=await r.text();
+        const linhas=txt.trim().split('\\n').slice(1);
+        if(!linhas.length){lista.innerHTML='<p>Nenhuma tarefa concluída ainda.</p>';return;}
+        lista.innerHTML='';
+        linhas.forEach(l=>{
+          const cols=l.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/).map(c=>c.replace(/\"/g,''));
+          const [id,titulo,desc,status,tags,data_limite,concluded_at,concluded_by]=cols;
+          const div=document.createElement('div');
+          div.style.background='#f1f1f1';div.style.borderRadius='8px';
+          div.style.padding='.5rem';div.style.marginBottom='.5rem';
+          div.innerHTML=`
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-weight:600">${titulo}</span>
+              <span style="font-size:.75rem;color:#666">${new Date(concluded_at).toLocaleDateString()}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.25rem">
+              ${tags.split(';').filter(Boolean).map(t=>'<span class="tag">'+t+'</span>').join('')}
+            </div>
+            <div style="font-size:.75rem;color:#666;margin-top:.25rem">Concluído por: ${concluded_by||'-'}</div>
+          `;
+          lista.appendChild(div);
+        });
+      }catch(err){
+        lista.innerHTML='<p style="color:red">Erro ao carregar concluídas.</p>';
+        console.error(err);
+      }
+    };
+    document.getElementById('close-modal').onclick=()=>modal.style.display='none';
+    modal.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none'});
 
-    // Exibe aviso na div #aviso
-    function exibirAviso(texto) {
-      const avisoDiv = document.getElementById("aviso");
-      avisoDiv.style.display = "block";
-      avisoDiv.innerText = texto;
-    }
-
-    // Carrega as tarefas ao abrir a página
+    /* --------- INICIALIZA --------- */
     carregarTarefas();
   </script>
 </body>
