@@ -7,3 +7,4 @@ id,titulo,descricao,status_inicial,tags,data_limite,concluded_at,concluded_by,re
 3,""Atividade 01"",""www.google hhhhj"",""urgente"",""dasda"",""10/04"","2025-04-14T01:47:21.490Z","freitas",""freitas""
 5,""Atividade 02"","""",""nao_iniciado"",""Test"",""11/04"","2025-04-14T01:52:52.486Z","freitas",""freitas""
 6,""teste 01"","""",""nao_iniciado"",""faculdade"",""10/10/2025"","2025-04-14T02:03:22.738Z","freitas",""freitas""
+2,""Tarefa 01"","""",""em_andamento"",""sasa"",""asassa"","2025-04-14T02:03:25.536Z","freitas",""freitas""
