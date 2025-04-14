@@ -19,18 +19,29 @@ input,select,button{
 button{cursor:pointer}
 
 /* ---------- BOTÃO CONCLUÍDAS ---------- */
+/* ---------- BOTÃO CONCLUÍDAS ---------- */
 .concluidas-wrapper{
-  max-width:600px;margin:0 auto 1rem;display:flex;justify-content:flex-end;
+  max-width:600px;
+  margin:0 auto 1rem;
   padding:0 1rem;
 }
+
 #btn-concluidas{
-  background:#66bb6a;           /* verde claro */
-  color:#fff;border:none;
-  padding:.5rem 1rem;border-radius:6px;font-weight:500;
+  display:block;          /* ocupa toda a linha */
+  width:100%;             /* mesma largura dos campos do formulário */
+  background:#8bc34a;     /* verde claro */
+  color:#fff;
+  border:none;
+  padding:.5rem 1rem;
+  border-radius:6px;
+  font-weight:500;
   box-shadow:0 2px 4px rgba(0,0,0,.1);
   transition:background .2s;
 }
-#btn-concluidas:hover{background:#57a65a}
+#btn-concluidas:hover{
+  background:#7ab13f;     /* tom ligeiramente mais escuro no hover */
+}
+
 
 /* ---------- KANBAN ---------- */
 .kanban{display:flex;gap:1rem;padding:1rem;overflow-x:auto}
