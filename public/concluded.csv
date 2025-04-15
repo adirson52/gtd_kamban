@@ -1,3 +1,4 @@
 id,titulo,descricao,status_inicial,tags,data_limite,concluded_at,concluded_by,responsavel_inicial
 1,""Dar Nota Pecege (08 de 15)"","""",""com_data"",""Pecege"",""14/04/2025"","2025-04-14T13:01:24.459Z","Marcus",""Marcus""
 4,""Oia"","""",""em_andamento"",""Ola"",""23/12/2025"","2025-04-15T01:00:05.771Z","freitas",""freitas""
+5,""Oia"","""",""urgente"",""Ola"",""23/12/2025"","2025-04-15T01:00:38.655Z","freitas",""freitas""
