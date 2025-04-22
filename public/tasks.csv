@@ -2,6 +2,5 @@ id,titulo,descricao,status,tags,data_limite,responsavel
 1,"Rodar modelo Logit ","","com_data","CFAVELA ","18/04","freitas"
 2,"Lançar notas Schoolnet","","com_data","FHO","18/04","freitas"
 3,"Montar modelo Análise de Sobrevivência","","nao_iniciado","CWS","22/04","freitas"
-4,"Artigos revistas e rev","","nao_iniciado","Estagio","18/04","freitas"
 5,"Tcc (dados barbara e Gabriel)","","com_data","Ler e montar banco de dados","18/04","freitas"
 6,"Ver Scraping ","","urgente","Cfavela ","","freitas"
